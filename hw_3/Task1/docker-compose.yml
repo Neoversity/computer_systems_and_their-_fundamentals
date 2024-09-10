@@ -1,0 +1,30 @@
+version: '3'
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+      POSTGRES_DB: task_management
+    volumes:
+      - ./dump-postgres-202409102255.sql:/docker-entrypoint-initdb.d/dump.sql
+    ports:
+      - "5432:5432"
+    restart: always
+
+  seed:
+    build: .
+    depends_on:
+      - db
+    environment:
+      POSTGRES_DB: task_management
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_password
+    volumes:
+      - ./seed.py:/seed.py
+    command: >
+      bash -c "apt-get update && apt-get install -y python3-venv &&
+           python3 -m venv /app/venv &&
+           /app/venv/bin/pip install psycopg2-binary faker &&
+           /app/venv/bin/python /seed.py"
